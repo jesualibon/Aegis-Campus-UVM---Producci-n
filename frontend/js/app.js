@@ -862,7 +862,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Botón Cerrar Sesión Táctica
+        // Botón Cerrar Sesión
         const btnLogout = document.getElementById('btn-logout');
         if (btnLogout) {
             btnLogout.addEventListener('click', async () => {
@@ -885,9 +885,85 @@ document.addEventListener('DOMContentLoaded', () => {
         const perfilDropdown = document.getElementById('perfil-dropdown');
         const userEmailDisplay = document.getElementById('user-email-display');
 
+        // Menú de navegación móvil (Botón Hamburguesa)
+        const btnMenuHamburguesa = document.getElementById('btn-menu-hamburguesa');
+        const menuMovil = document.getElementById('menu-movil');
+        const iconHamburguesa = document.getElementById('icon-hamburguesa');
+        const iconHamburguesaCerrar = document.getElementById('icon-hamburguesa-cerrar');
+        const userEmailDisplayMovil = document.getElementById('user-email-display-movil');
+        const btnResetMovil = document.getElementById('btn-reset-movil');
+        const btnAdminOperadoresMovil = document.getElementById('btn-admin-operadores-movil');
+        const btnCambiarPasswordMovil = document.getElementById('btn-cambiar-password-movil');
+        const btnLogoutMovil = document.getElementById('btn-logout-movil');
+
+        function toggleMenuMovil() {
+            if (!menuMovil) return;
+            const isOpen = !menuMovil.classList.contains('hidden');
+            if (isOpen) {
+                cerrarMenuMovil();
+            } else {
+                menuMovil.classList.remove('hidden');
+                if (btnMenuHamburguesa) btnMenuHamburguesa.setAttribute('aria-expanded', 'true');
+                if (iconHamburguesa) iconHamburguesa.classList.add('hidden');
+                if (iconHamburguesaCerrar) iconHamburguesaCerrar.classList.remove('hidden');
+                if (perfilDropdown) perfilDropdown.classList.add('hidden');
+            }
+        }
+
+        function cerrarMenuMovil() {
+            if (!menuMovil) return;
+            menuMovil.classList.add('hidden');
+            if (btnMenuHamburguesa) btnMenuHamburguesa.setAttribute('aria-expanded', 'false');
+            if (iconHamburguesa) iconHamburguesa.classList.remove('hidden');
+            if (iconHamburguesaCerrar) iconHamburguesaCerrar.classList.add('hidden');
+        }
+
+        if (btnMenuHamburguesa && menuMovil) {
+            btnMenuHamburguesa.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleMenuMovil();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!menuMovil.contains(e.target) && !btnMenuHamburguesa.contains(e.target)) {
+                    cerrarMenuMovil();
+                }
+            });
+        }
+
+        // Acciones móviles delegadas a los botones correspondientes
+        if (btnResetMovil && btnReset) {
+            btnResetMovil.addEventListener('click', () => {
+                cerrarMenuMovil();
+                btnReset.click();
+            });
+        }
+
+        if (btnAdminOperadoresMovil) {
+            btnAdminOperadoresMovil.addEventListener('click', () => {
+                cerrarMenuMovil();
+                abrirModalOperadores();
+            });
+        }
+
+        if (btnCambiarPasswordMovil) {
+            btnCambiarPasswordMovil.addEventListener('click', () => {
+                cerrarMenuMovil();
+                abrirModalPassword();
+            });
+        }
+
+        if (btnLogoutMovil && btnLogout) {
+            btnLogoutMovil.addEventListener('click', () => {
+                cerrarMenuMovil();
+                btnLogout.click();
+            });
+        }
+
         if (btnPerfilAvatar && perfilDropdown) {
             btnPerfilAvatar.addEventListener('click', (e) => {
                 e.stopPropagation();
+                cerrarMenuMovil();
                 perfilDropdown.classList.toggle('hidden');
             });
 
@@ -904,11 +980,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch('/api/v1/auth/me');
                 if (!res.ok) return;
                 const user = await res.json();
-                if (user && userEmailDisplay) {
-                    userEmailDisplay.textContent = user.email || 'Operador activo';
+                if (user) {
+                    if (userEmailDisplay) userEmailDisplay.textContent = user.email || 'Operador activo';
+                    if (userEmailDisplayMovil) userEmailDisplayMovil.textContent = user.email || 'Operador activo';
                 }
-                if (user && user.rol === 'SUPERADMIN' && btnAdminOperadores) {
-                    btnAdminOperadores.classList.remove('hidden');
+                if (user && user.rol === 'SUPERADMIN') {
+                    if (btnAdminOperadores) btnAdminOperadores.classList.remove('hidden');
+                    if (btnAdminOperadoresMovil) btnAdminOperadoresMovil.classList.remove('hidden');
                 }
             } catch (err) {
                 console.warn('[AUTH] Error al verificar identidad:', err);

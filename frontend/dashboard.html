@@ -29,22 +29,22 @@
                 <span class="font-bold tracking-widest text-lg text-white">AEGIS CAMPUS</span>
             </div>
 
-            <!-- Sector Derecho (Enlaces de Operación y Menú de Operador) -->
+            <!-- Sector Derecho (Desktop): Enlaces de Operación y Menú de Operador -->
             <ul class="hidden md:flex space-x-8 items-center text-sm font-semibold uppercase tracking-wide">
                 <li>
-                    <a href="/" target="_blank" class="hover:text-gray-200 transition-colors">NUEVO REPORTE</a>
+                    <a href="/" target="_blank" class="hover:text-gray-200 transition-colors">Nuevo reporte</a>
                 </li>
                 <li>
-                    <button type="button" id="btn-reset" class="hover:text-gray-200 transition-colors cursor-pointer uppercase">LIMPIAR TABLERO</button>
+                    <button type="button" id="btn-reset" class="hover:text-gray-200 transition-colors cursor-pointer uppercase">Limpiar tablero</button>
                 </li>
                 <li>
-                    <button type="button" id="btn-admin-operadores" class="hidden hover:text-gray-200 transition-colors cursor-pointer uppercase">OPERADORES</button>
+                    <button type="button" id="btn-admin-operadores" class="hidden hover:text-gray-200 transition-colors cursor-pointer uppercase">Operadores</button>
                 </li>
                 
                 <!-- Menú de Cuenta de Operador -->
                 <li class="relative" id="perfil-menu-container">
                     <button type="button" id="btn-perfil-avatar" class="hover:text-gray-200 transition-colors cursor-pointer flex items-center gap-1 uppercase tracking-wide focus:outline-none" title="Mi Cuenta de Operador">
-                        <span>CUENTA</span>
+                        <span>Cuenta</span>
                         <span class="material-symbols-outlined text-[18px]">expand_more</span>
                     </button>
 
@@ -66,14 +66,49 @@
                 </li>
             </ul>
 
-            <!-- Navegación Móvil -->
-            <div class="flex md:hidden items-center space-x-3 text-xs font-semibold uppercase tracking-wide">
-                <a href="/" target="_blank" class="hover:text-gray-200 transition-colors">REPORTE</a>
-                <button type="button" onclick="document.getElementById('btn-reset').click()" class="hover:text-gray-200 transition-colors cursor-pointer">LIMPIAR</button>
-                <button type="button" onclick="document.getElementById('btn-cambiar-password').click()" class="hover:text-gray-200 transition-colors cursor-pointer">CLAVE</button>
-                <button type="button" onclick="document.getElementById('btn-logout').click()" class="hover:text-gray-200 transition-colors cursor-pointer">SALIR</button>
-            </div>
+            <!-- Botón de Menú de Hamburguesa (Móvil) -->
+            <button type="button" id="btn-menu-hamburguesa" class="md:hidden text-white hover:text-gray-200 focus:outline-none p-1.5 cursor-pointer flex items-center justify-center transition-colors" aria-label="Abrir menú de navegación" aria-expanded="false">
+                <svg id="icon-hamburguesa" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+                <svg id="icon-hamburguesa-cerrar" class="w-6 h-6 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </nav>
+
+        <!-- Menú Desplegable Móvil (Oculto por defecto) -->
+        <div id="menu-movil" class="hidden md:hidden border-t border-red-800/40 bg-[#B80C26] text-white px-6 py-4 shadow-lg">
+            <!-- Correo del Operador Activo -->
+            <div class="pb-3 mb-3 border-b border-red-700/60 text-xs">
+                <p class="text-[10px] font-bold text-red-200 uppercase tracking-wider">Operador Activo</p>
+                <p class="font-semibold text-white truncate mt-0.5 text-sm" id="user-email-display-movil">Cargando...</p>
+            </div>
+
+            <!-- Lista Vertical de Acciones Oficiales -->
+            <div class="flex flex-col space-y-3 text-sm font-semibold tracking-wide">
+                <a href="/" target="_blank" class="hover:text-red-100 transition-colors py-1.5 flex items-center justify-between">
+                    <span>Nuevo reporte</span>
+                    <span class="material-symbols-outlined text-[18px] opacity-75">open_in_new</span>
+                </a>
+                <button type="button" id="btn-reset-movil" class="w-full text-left hover:text-red-100 transition-colors cursor-pointer py-1.5 flex items-center justify-between">
+                    <span>Limpiar tablero</span>
+                    <span class="material-symbols-outlined text-[18px] opacity-75">refresh</span>
+                </button>
+                <button type="button" id="btn-admin-operadores-movil" class="hidden w-full text-left hover:text-red-100 transition-colors cursor-pointer py-1.5 flex items-center justify-between">
+                    <span>Operadores</span>
+                    <span class="material-symbols-outlined text-[18px] opacity-75">manage_accounts</span>
+                </button>
+                <button type="button" id="btn-cambiar-password-movil" class="w-full text-left hover:text-red-100 transition-colors cursor-pointer py-1.5 flex items-center justify-between">
+                    <span>Restablecer contraseña</span>
+                    <span class="material-symbols-outlined text-[18px] opacity-75">lock_reset</span>
+                </button>
+                <button type="button" id="btn-logout-movil" class="w-full text-left text-white hover:text-red-100 transition-colors cursor-pointer pt-3 mt-1 border-t border-red-700/60 flex items-center justify-between font-bold">
+                    <span>Cerrar sesión</span>
+                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                </button>
+            </div>
+        </div>
     </header>
 
     <!-- Área de Trabajo Equilibrada (Cuadrícula 12 Columnas) -->
