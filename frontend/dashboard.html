@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis Campus | Centro de Mando</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Montserrat + JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Material Symbols Outlined (Versión Oficial con Rango Completo de Ejes) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Favicon: Escudo SVG embebido -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C8102E'%3E%3Cpath d='M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.9c-2.73-1.08-4.98-3.48-5.71-6.4 1.13-1.11 3.52-1.75 5.71-1.75s4.58.64 5.71 1.75c-.73 2.92-2.98 5.32-5.71 6.4z'/%3E%3C/svg%3E">
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800 font-['Montserrat',sans-serif] antialiased selection:bg-red-100 selection:text-[#C8102E] flex flex-col">
+    
+    <!-- Header Institucional UVM -->
+    <header class="bg-[#C8102E] text-white shadow-md z-50 sticky top-0 w-full shrink-0">
+        <nav class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+            <!-- Sector Izquierdo (Logo): SVG Escudo Académico + AEGIS CAMPUS -->
+            <div class="flex items-center space-x-3">
+                <svg class="w-8 h-8 text-white fill-current shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 1L3 4.5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V4.5L12 1ZM19 11C19 15.52 16.02 19.68 12 20.89C7.98 19.68 5 15.52 5 11V5.88L12 3.16L19 5.88V11ZM12 6C9.79 6 8 7.79 8 10C8 11.23 8.56 12.33 9.44 13.06C8.25 14.28 7.5 15.68 7.5 17H16.5C16.5 15.68 15.75 14.28 14.56 13.06C15.44 12.33 16 11.23 16 10C16 7.79 14.21 6 12 6ZM12 8C13.1 8 14 8.9 14 10C14 11.1 13.1 12 12 12C10.9 12 10 11.1 10 10C10 8.9 10.9 8 12 8ZM12 14.5C13.41 14.5 14.7 15.22 15.35 16H8.65C9.3 15.22 10.59 14.5 12 14.5Z"/>
+                </svg>
+                <span class="font-bold tracking-widest text-lg text-white">AEGIS CAMPUS</span>
+            </div>
+
+            <!-- Sector Derecho (Enlaces de Operación y Menú de Operador) -->
+            <ul class="hidden md:flex space-x-8 items-center text-sm font-semibold uppercase tracking-wide">
+                <li>
+                    <a href="/" target="_blank" class="hover:text-gray-200 transition-colors">NUEVO REPORTE</a>
+                </li>
+                <li>
+                    <button type="button" id="btn-reset" class="hover:text-gray-200 transition-colors cursor-pointer uppercase">LIMPIAR TABLERO</button>
+                </li>
+                <li>
+                    <button type="button" id="btn-admin-operadores" class="hidden hover:text-gray-200 transition-colors cursor-pointer uppercase">OPERADORES</button>
+                </li>
+                
+                <!-- Menú de Cuenta de Operador -->
+                <li class="relative" id="perfil-menu-container">
+                    <button type="button" id="btn-perfil-avatar" class="hover:text-gray-200 transition-colors cursor-pointer flex items-center gap-1 uppercase tracking-wide focus:outline-none" title="Mi Cuenta de Operador">
+                        <span>CUENTA</span>
+                        <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                    </button>
+
+                    <!-- Capa Flotante del Menú de Perfil -->
+                    <div id="perfil-dropdown" class="hidden absolute right-0 mt-3 w-56 bg-white text-[#1F1F1F] rounded-sm shadow-xl border border-gray-200 py-1.5 z-50 normal-case">
+                        <div class="px-3.5 py-2.5 border-b border-gray-100 text-xs">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Operador Activo</p>
+                            <p class="font-semibold text-slate-800 truncate mt-0.5 text-xs" id="user-email-display">Cargando...</p>
+                        </div>
+                        <button type="button" id="btn-cambiar-password" class="w-full text-left px-3.5 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-[#C8102E] flex items-center gap-2.5 cursor-pointer transition-colors">
+                            <span class="material-symbols-outlined text-[16px] text-gray-400">lock_reset</span>
+                            <span>Restablecer contraseña</span>
+                        </button>
+                        <button type="button" id="btn-logout" class="w-full text-left px-3.5 py-2.5 text-xs font-semibold text-[#C8102E] hover:bg-red-50 flex items-center gap-2.5 cursor-pointer transition-colors border-t border-gray-100">
+                            <span class="material-symbols-outlined text-[16px] text-[#C8102E]">logout</span>
+                            <span>Cerrar sesión</span>
+                        </button>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- Navegación Móvil -->
+            <div class="flex md:hidden items-center space-x-3 text-xs font-semibold uppercase tracking-wide">
+                <a href="/" target="_blank" class="hover:text-gray-200 transition-colors">REPORTE</a>
+                <button type="button" onclick="document.getElementById('btn-reset').click()" class="hover:text-gray-200 transition-colors cursor-pointer">LIMPIAR</button>
+                <button type="button" onclick="document.getElementById('btn-cambiar-password').click()" class="hover:text-gray-200 transition-colors cursor-pointer">CLAVE</button>
+                <button type="button" onclick="document.getElementById('btn-logout').click()" class="hover:text-gray-200 transition-colors cursor-pointer">SALIR</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Área de Trabajo Equilibrada (Cuadrícula 12 Columnas) -->
+    <main class="flex-grow max-w-[1440px] w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Panel Izquierdo: Mapa del Campus (lg:col-span-7) -->
+        <section class="lg:col-span-7 bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+            <!-- Cabecera limpia -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-slate-700">map</span>
+                    <h2 class="text-base font-bold text-slate-900 tracking-tight">Mapa del Campus</h2>
+                </div>
+                <span class="text-xs font-medium text-slate-400">UVM Mérida</span>
+            </div>
+
+            <!-- Contenedor del Mapa panorámico aspect-[16/10] -->
+            <div id="mapa-container" class="relative w-full aspect-[16/10] rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                <div id="mapa" class="relative w-full h-full select-none">
+                    <div id="mapa-ortogonal-wrapper" class="relative w-full h-full">
+                        <img id="mapa-img" src="/img/mapa_ortogonal.jpg" alt="Mapa del Campus UVM Mérida" class="w-full h-full object-cover pointer-events-none">
+                        <!-- Capa de pines superpuestos exactamente sobre el plano ortogonal -->
+                        <div id="pins-ortogonal-layer" class="absolute inset-0 pointer-events-none"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Panel Derecho: Incidentes Activos (lg:col-span-5) -->
+        <section class="lg:col-span-5 bg-white border border-slate-200 rounded-xl flex flex-col overflow-hidden shadow-xs">
+            <!-- Cabecera del Panel Derecho -->
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-slate-700">emergency</span>
+                    <h2 class="text-base font-bold text-slate-900 tracking-tight">Incidentes activos</h2>
+                </div>
+                <span id="contador-incidentes" class="font-mono text-xs text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">0 activos</span>
+            </div>
+            
+            <!-- Lista con Scroll Independiente -->
+            <div id="lista-incidentes" class="p-4 space-y-3 bg-slate-50/50 max-h-[640px] overflow-y-auto custom-scrollbar">
+                <div class="flex flex-col items-center justify-center text-center py-16" id="empty-state">
+                    <div class="w-12 h-12 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center mb-3 border border-slate-200">
+                        <span class="material-symbols-outlined text-[22px]">inbox</span>
+                    </div>
+                    <p class="text-slate-800 font-bold text-sm">Sin incidentes activos</p>
+                    <p class="text-slate-400 text-xs mt-1 max-w-xs">Los nuevos reportes aparecerán aquí automáticamente.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para Fotografía de Zona -->
+    <div id="modal-foto" class="fixed inset-0 bg-slate-900/60 z-[1000] hidden items-center justify-center p-4 backdrop-blur-sm transition-all duration-300">
+        <div class="bg-white rounded-lg max-w-2xl w-full p-5 sm:p-6 overflow-hidden border border-slate-200/80">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <h3 id="modal-titulo" class="font-bold text-slate-900 flex items-center gap-2 text-sm sm:text-base">
+                    <div class="w-8 h-8 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                        <span class="material-symbols-outlined text-[18px]">photo_camera</span>
+                    </div>
+                    <span>Fotografía del área</span>
+                </h3>
+                <button type="button" id="btn-cerrar-modal" class="p-1.5 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+            <div class="rounded-lg overflow-hidden bg-slate-950 flex items-center justify-center max-h-[450px] border border-slate-200/80">
+                <img id="modal-img" src="" alt="Vista previa de zona" class="object-contain w-full h-full">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Gestión de Operadores (Solo SUPERADMIN, hidden por defecto) -->
+    <div id="modal-admin-operadores" class="fixed inset-0 bg-slate-900/60 z-[1000] hidden items-center justify-center p-4 backdrop-blur-sm transition-all duration-300">
+        <div class="bg-white rounded-lg max-w-3xl w-full p-5 sm:p-7 overflow-hidden border border-slate-200/80 flex flex-col max-h-[90vh]">
+            
+            <!-- Encabezado del Modal -->
+            <div class="flex justify-between items-center pb-4 mb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-sm bg-red-50 text-[#C8102E] flex items-center justify-center border border-red-100">
+                        <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base sm:text-lg">Operadores</h3>
+                    </div>
+                </div>
+                <button type="button" id="btn-cerrar-modal-operadores" class="p-1.5 hover:bg-slate-100 rounded-sm text-slate-400 hover:text-slate-600 transition-colors cursor-pointer" title="Cerrar ventana">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <!-- Formulario Inline en 1 Sola Fila -->
+            <form id="form-crear-operador" class="flex flex-col sm:flex-row gap-2 items-center bg-slate-50 p-2.5 rounded-sm border border-slate-200 mb-3 shrink-0">
+                <input type="email" id="admin-op-email" required placeholder="Correo electrónico institucional" 
+                    class="w-full sm:flex-1 h-9 px-3 rounded-sm border border-gray-300 text-xs bg-white text-slate-800 placeholder:text-gray-400 outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E]">
+                
+                <input type="password" id="admin-op-password" required minlength="6" placeholder="Contraseña (mínimo 6)" 
+                    class="w-full sm:w-44 h-9 px-3 rounded-sm border border-gray-300 text-xs bg-white text-slate-800 placeholder:text-gray-400 outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E]">
+                
+                <select id="admin-op-rol" required 
+                    class="w-full sm:w-36 h-9 px-2 rounded-sm border border-gray-300 text-xs bg-white text-slate-800 outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] cursor-pointer">
+                    <option value="OPERADOR" selected>OPERADOR</option>
+                    <option value="SUPERADMIN">SUPERADMIN</option>
+                </select>
+
+                <button type="submit" id="btn-submit-crear-operador" 
+                    class="w-full sm:w-auto h-9 px-4 bg-[#C8102E] hover:bg-[#a50d26] text-white rounded-sm text-xs font-bold uppercase tracking-wider shrink-0 transition-colors cursor-pointer flex items-center justify-center">
+                    Añadir
+                </button>
+            </form>
+            <p id="admin-op-msg" class="text-xs font-medium hidden mb-3"></p>
+
+            <!-- Directorio de Operadores -->
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Directorio de Operadores</span>
+                <button type="button" id="btn-recargar-operadores" class="text-xs font-semibold text-[#C8102E] hover:underline flex items-center gap-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">refresh</span>
+                    <span>Actualizar</span>
+                </button>
+            </div>
+
+            <!-- Tabla Minimalista -->
+            <div class="overflow-y-auto custom-scrollbar flex-1 rounded-lg border border-slate-200">
+                <table class="w-full text-left text-xs text-slate-700">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-[11px] sticky top-0 z-10">
+                        <tr>
+                            <th class="py-2.5 px-3.5">ID</th>
+                            <th class="py-2.5 px-3.5">Operador (Email)</th>
+                            <th class="py-2.5 px-3.5">Rol</th>
+                            <th class="py-2.5 px-3.5">Estado</th>
+                            <th class="py-2.5 px-3.5 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-operadores-admin" class="divide-y divide-slate-100 bg-white">
+                        <tr>
+                            <td colspan="5" class="py-6 text-center text-slate-400">
+                                Cargando operadores registrados...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal: Restablecer Contraseña del Operador -->
+    <div id="modal-cambiar-password" class="fixed inset-0 bg-slate-900/60 z-[1000] hidden items-center justify-center p-4 backdrop-blur-sm transition-all duration-300">
+        <div class="bg-white rounded-lg max-w-md w-full p-6 sm:p-7 overflow-hidden border border-gray-200 shadow-xl">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-sm bg-red-50 text-[#C8102E] flex items-center justify-center border border-red-100">
+                        <span class="material-symbols-outlined text-[20px]">lock_reset</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base">Restablecer Contraseña</h3>
+                        <p class="text-xs text-gray-500">Panel de seguridad • UVM Campus Mérida</p>
+                    </div>
+                </div>
+                <button type="button" id="btn-cerrar-modal-password" class="p-1.5 hover:bg-slate-100 rounded-sm text-slate-400 hover:text-slate-600 transition-colors cursor-pointer" title="Cerrar ventana">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <form id="form-cambiar-password" class="space-y-4">
+                <div>
+                    <label for="password_actual" class="block text-xs font-semibold text-[#1F1F1F] mb-1.5">
+                        Contraseña actual <span class="text-[#C8102E]">*</span>
+                    </label>
+                    <input type="password" id="password_actual" required placeholder="••••••••" 
+                        class="w-full bg-white border border-gray-300 rounded-sm px-3.5 h-10 text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] transition-all">
+                </div>
+
+                <div>
+                    <label for="password_nuevo" class="block text-xs font-semibold text-[#1F1F1F] mb-1.5">
+                        Nueva contraseña (mínimo 6 caracteres) <span class="text-[#C8102E]">*</span>
+                    </label>
+                    <input type="password" id="password_nuevo" required minlength="6" placeholder="••••••••" 
+                        class="w-full bg-white border border-gray-300 rounded-sm px-3.5 h-10 text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] transition-all">
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-2 border-t border-gray-100">
+                    <button type="button" id="btn-cancelar-password" class="px-4 py-2.5 rounded-sm text-xs font-bold uppercase tracking-wider text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btn-submit-password" class="h-10 bg-[#C8102E] hover:bg-[#a50d26] active:bg-[#850a1e] text-white px-5 rounded-sm text-xs font-bold uppercase tracking-wide transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">check</span>
+                        <span>Guardar Cambios</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenedor Flotante para Notificaciones Toast -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[2000] flex flex-col gap-2 max-w-sm w-full px-4"></div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

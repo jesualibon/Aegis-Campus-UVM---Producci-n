@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis Campus | Iniciar sesión</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Montserrat + JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Material Symbols Outlined -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Favicon: Escudo SVG embebido -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23C8102E'%3E%3Cpath d='M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.9c-2.73-1.08-4.98-3.48-5.71-6.4 1.13-1.11 3.52-1.75 5.71-1.75s4.58.64 5.71 1.75c-.73 2.92-2.98 5.32-5.71 6.4z'/%3E%3C/svg%3E">
+</head>
+<body class="bg-[#F0F4F9] text-[#1F1F1F] font-['Montserrat',sans-serif] min-h-screen flex flex-col antialiased selection:bg-red-100 selection:text-[#C8102E]">
+
+    <!-- Header Institucional UVM -->
+    <header class="bg-[#C8102E] text-white shadow-md z-50 sticky top-0 w-full shrink-0">
+        <nav class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+            <!-- Sector Izquierdo (Logo): SVG Escudo Académico + AEGIS CAMPUS -->
+            <a href="/" class="flex items-center space-x-3 group">
+                <svg class="w-8 h-8 text-white fill-current shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 1L3 4.5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V4.5L12 1ZM19 11C19 15.52 16.02 19.68 12 20.89C7.98 19.68 5 15.52 5 11V5.88L12 3.16L19 5.88V11ZM12 6C9.79 6 8 7.79 8 10C8 11.23 8.56 12.33 9.44 13.06C8.25 14.28 7.5 15.68 7.5 17H16.5C16.5 15.68 15.75 14.28 14.56 13.06C15.44 12.33 16 11.23 16 10C16 7.79 14.21 6 12 6ZM12 8C13.1 8 14 8.9 14 10C14 11.1 13.1 12 12 12C10.9 12 10 11.1 10 10C10 8.9 10.9 8 12 8ZM12 14.5C13.41 14.5 14.7 15.22 15.35 16H8.65C9.3 15.22 10.59 14.5 12 14.5Z"/>
+                </svg>
+                <span class="font-bold tracking-widest text-lg text-white">AEGIS CAMPUS</span>
+            </a>
+
+            <!-- Sector Derecho: Enlace hacia el reporte de emergencia -->
+            <ul class="flex items-center text-sm font-semibold uppercase tracking-wide">
+                <li>
+                    <a href="/" class="hover:text-gray-200 transition-colors">REPORTAR</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenedor Central del Formulario -->
+    <div class="flex-1 flex flex-col justify-center items-center p-4 sm:p-6 my-auto w-full">
+        <!-- Tarjeta Principal de Ancho Controlado -->
+        <main class="w-full max-w-[420px] bg-white rounded-lg p-6 sm:p-8 shadow-sm border border-gray-200">
+            
+            <!-- Cabecera Integrada: Escudo + Aegis Campus • UVM Mérida -->
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <span class="material-symbols-outlined text-[18px] text-[#C8102E] select-none">shield_person</span>
+                <span>Aegis Campus • UVM Mérida</span>
+            </div>
+            <h1 class="text-2xl font-bold text-[#1F1F1F] mt-3 tracking-tight">Iniciar sesión</h1>
+            <p class="text-sm text-gray-600 mt-1 mb-6">Panel de seguridad • UVM Campus Mérida</p>
+
+            <!-- Formulario en Distribución Vertical -->
+            <form id="form-login" class="space-y-4">
+                
+                <!-- Campo 1: Correo Institucional -->
+                <div>
+                    <label for="email" class="text-xs font-semibold text-[#1F1F1F] mb-1.5 block">
+                        Correo institucional <span class="text-[#C8102E]">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required 
+                        autocomplete="username"
+                        placeholder="nombre.apellido@uvm.edu.mx" 
+                        class="w-full bg-white border border-gray-300 rounded-sm px-3.5 h-10 text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] transition-all"
+                    />
+                </div>
+
+                <!-- Campo 2: Contraseña -->
+                <div>
+                    <label for="password" class="text-xs font-semibold text-[#1F1F1F] mb-1.5 block">
+                        Contraseña <span class="text-[#C8102E]">*</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required 
+                        autocomplete="current-password"
+                        placeholder="••••••••" 
+                        class="w-full bg-white border border-gray-300 rounded-sm px-3.5 h-10 text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] transition-all"
+                    />
+                    
+                    <!-- Checkbox: Mostrar Contraseña -->
+                    <div class="flex items-center gap-2 mt-2">
+                        <input 
+                            type="checkbox" 
+                            id="toggle-password" 
+                            class="w-3.5 h-3.5 rounded-sm text-[#C8102E] border-gray-300 focus:ring-[#C8102E] cursor-pointer"
+                        />
+                        <label for="toggle-password" class="text-xs text-gray-600 select-none cursor-pointer">
+                            Mostrar contraseña
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Mensaje de Error (si ocurre) -->
+                <div id="error-msg" class="hidden p-3 rounded-sm bg-red-50 border border-red-200 text-[#C8102E] text-xs font-medium">
+                    <span id="error-text">Credenciales no válidas.</span>
+                </div>
+
+                <!-- Botón Oficial UVM -->
+                <div class="pt-2">
+                    <button 
+                        type="submit" 
+                        id="btn-submit" 
+                        class="w-full h-11 bg-[#C8102E] hover:bg-[#a50d26] active:bg-[#850a1e] text-white rounded-sm uppercase font-bold tracking-wide text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    >
+                        INICIAR SESIÓN
+                    </button>
+                </div>
+            </form>
+        </main>
+
+        <!-- Pie Externo -->
+        <div class="w-full max-w-[420px] mt-4 px-1 flex flex-col items-center gap-2 text-center text-xs text-gray-500 font-medium">
+            <a href="/" class="hover:text-[#C8102E] transition-colors inline-flex items-center gap-1 font-semibold">
+                <span>← Volver al formulario de reporte</span>
+            </a>
+            <span>Universidad del Valle de México • Campus Mérida</span>
+        </div>
+    </div>
+
+    <!-- Script de Autenticación y Control de Contraseña -->
+    <script>
+        const formLogin = document.getElementById('form-login');
+        const inputPassword = document.getElementById('password');
+        const togglePassword = document.getElementById('toggle-password');
+        const errorMsg = document.getElementById('error-msg');
+        const errorText = document.getElementById('error-text');
+        const btnSubmit = document.getElementById('btn-submit');
+
+        // Alternar visualización de contraseña
+        togglePassword.addEventListener('change', () => {
+            inputPassword.type = togglePassword.checked ? 'text' : 'password';
+        });
+
+        // Manejo del formulario de inicio de sesión
+        formLogin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.classList.add('hidden');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'ACCEDIENDO...';
+
+            try {
+                const res = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value.trim(),
+                        password: inputPassword.value
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || 'Credenciales no válidas.');
+                }
+
+                btnSubmit.textContent = 'REDIRIGIENDO...';
+                window.location.href = '/centro-mando';
+            } catch (err) {
+                errorText.textContent = err.message;
+                errorMsg.classList.remove('hidden');
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'INICIAR SESIÓN';
+            }
+        });
+    </script>
+</body>
+</html>
