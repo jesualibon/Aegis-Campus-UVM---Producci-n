@@ -68,16 +68,29 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10kb' })); // Limita tamaño del payload para evitar sobrecarga
 app.use(express.text({ type: ['text/xml', 'application/xml', 'text/plain'], limit: '50kb' })); // Soporte XML para SOAP
 
-// Configuración de servicio de correo Nodemailer
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT, 10) || 587,
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
+// Configuración de servicio de correo Nodemailer (Gmail nativo o SMTP personalizado)
+const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+const smtpPass = (process.env.SMTP_PASS || process.env.EMAIL_PASS || '').replace(/\s+/g, ''); // Remueve espacios si la app password los incluye
+
+const transporterConfig = (process.env.SMTP_HOST && process.env.SMTP_HOST !== 'smtp.gmail.com')
+    ? {
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT, 10) || 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+            user: smtpUser,
+            pass: smtpPass
+        }
     }
-});
+    : {
+        service: 'gmail',
+        auth: {
+            user: smtpUser,
+            pass: smtpPass
+        }
+    };
+
+const transporter = nodemailer.createTransport(transporterConfig);
 const mailTransporter = transporter;
 
 /**
@@ -116,7 +129,10 @@ async function enviarNotificacionIncidente(incidente) {
         </div>
     `;
 
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    const userEmisor = process.env.SMTP_USER || process.env.EMAIL_USER;
+    const passEmisor = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
+    if (!userEmisor || !passEmisor) {
         console.log(`[Email] Despacho simulado (sin credenciales SMTP configuradas):\n${asunto}\n${cuerpoTexto}`);
         return;
     }
@@ -150,8 +166,8 @@ async function enviarNotificacionIncidente(incidente) {
         }
 
         const mailOptions = {
-            from: `"Aegis Campus" <${process.env.SMTP_USER}>`,
-            to: process.env.SMTP_USER,
+            from: `"Aegis Campus" <${userEmisor}>`,
+            to: userEmisor,
             bcc: listaDestinos,
             subject: asunto,
             text: cuerpoTexto,
