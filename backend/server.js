@@ -69,7 +69,7 @@ app.use(express.json({ limit: '10kb' })); // Limita tamaño del payload para evi
 app.use(express.text({ type: ['text/xml', 'application/xml', 'text/plain'], limit: '50kb' })); // Soporte XML para SOAP
 
 // URL del Puente HTTPS para despacho de correos vía Google Apps Script (Bypass de puertos SMTP en la nube)
-const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwX37Oh_bR5vPH1XbCOiPXTJUJXI5HcajGfPuWzGgOJokayNWWaS59Jwsk4ndjz9iH6LA/exec';
+const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxMrXI0F0XofNWqlSawnt7rCIRJ7FhjhDBpZ8wW-_tcWX0mImLJ2lMyq0DvNLvO2zJsSg/exec';
 
 // Configuración de servicio de correo Nodemailer (Gmail nativo o SMTP personalizado como respaldo)
 const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
