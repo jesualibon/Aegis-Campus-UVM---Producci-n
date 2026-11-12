@@ -68,7 +68,10 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10kb' })); // Limita tamaño del payload para evitar sobrecarga
 app.use(express.text({ type: ['text/xml', 'application/xml', 'text/plain'], limit: '50kb' })); // Soporte XML para SOAP
 
-// Configuración de servicio de correo Nodemailer (Gmail nativo o SMTP personalizado)
+// URL del Puente HTTPS para despacho de correos vía Google Apps Script (Bypass de puertos SMTP en la nube)
+const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwX37Oh_bR5vPH1XbCOiPXTJUJXI5HcajGfPuWzGgOJokayNWWaS59Jwsk4ndjz9iH6LA/exec';
+
+// Configuración de servicio de correo Nodemailer (Gmail nativo o SMTP personalizado como respaldo)
 const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
 const smtpPass = (process.env.SMTP_PASS || process.env.EMAIL_PASS || '').replace(/\s+/g, ''); // Remueve espacios si la app password los incluye
 
@@ -95,17 +98,18 @@ const mailTransporter = transporter;
 
 /**
  * Notificación asíncrona de incidentes por correo electrónico a suscriptores y red comunitaria.
+ * Prioriza el puente HTTPS de Google Apps Script y utiliza Nodemailer como respaldo automático.
  */
 async function enviarNotificacionIncidente(incidente) {
     if (!incidente) return;
 
-    const zonaLimpia = (incidente.zona_id || '').replace(/\s*\([^)]*\)/g, '').trim();
+    const zonaLimpia = (incidente.zona_id || incidente.zona || '').replace(/\s*\([^)]*\)/g, '').trim();
     const folio = incidente.id || 'S/N';
     const tipo = incidente.tipo_emergencia || 'General';
     const prioridad = incidente.severidad || 'MEDIA';
 
     const asunto = `Aviso de incidente en UVM Mérida • Folio ${folio}`;
-    const cuerpoTexto = [
+    const cuerpo = [
         'Nuevo incidente registrado en el campus UVM Mérida.',
         '',
         `Folio: ${folio}`,
@@ -115,27 +119,6 @@ async function enviarNotificacionIncidente(incidente) {
         '',
         'El centro de monitoreo ya atiende el reporte.'
     ].join('\n');
-
-    const cuerpoHtml = `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #202124; max-width: 560px; margin: 0 auto; padding: 20px; border: 1px solid #dadce0; border-radius: 8px;">
-            <p style="margin-top: 0; font-size: 15px; font-weight: bold; color: #C8102E;">Nuevo incidente registrado en el campus UVM Mérida.</p>
-            <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
-                <tr><td style="padding: 6px 0; color: #5f6368; width: 110px;"><strong>Folio:</strong></td><td>${folio}</td></tr>
-                <tr><td style="padding: 6px 0; color: #5f6368;"><strong>Ubicación:</strong></td><td><strong>${zonaLimpia}</strong></td></tr>
-                <tr><td style="padding: 6px 0; color: #5f6368;"><strong>Tipo:</strong></td><td>${tipo}</td></tr>
-                <tr><td style="padding: 6px 0; color: #5f6368;"><strong>Prioridad:</strong></td><td>${prioridad}</td></tr>
-            </table>
-            <p style="margin-bottom: 0; color: #3c4043; font-size: 14px;">El centro de monitoreo ya atiende el reporte.</p>
-        </div>
-    `;
-
-    const userEmisor = process.env.SMTP_USER || process.env.EMAIL_USER;
-    const passEmisor = process.env.SMTP_PASS || process.env.EMAIL_PASS;
-
-    if (!userEmisor || !passEmisor) {
-        console.log(`[Email] Despacho simulado (sin credenciales SMTP configuradas):\n${asunto}\n${cuerpoTexto}`);
-        return;
-    }
 
     try {
         const emailsSet = new Set();
@@ -149,7 +132,7 @@ async function enviarNotificacionIncidente(incidente) {
                 .forEach(e => emailsSet.add(e));
         }
 
-        // 2. Destinos desde la tabla suscriptores
+        // 2. Destinos desde la tabla suscriptores de Neon DB
         try {
             const { rows } = await pool.query('SELECT email FROM suscriptores;');
             rows.forEach(r => {
@@ -159,25 +142,74 @@ async function enviarNotificacionIncidente(incidente) {
             console.warn('[Email] Error al consultar suscriptores de la base de datos:', dbErr.message);
         }
 
-        const listaDestinos = Array.from(emailsSet);
-        if (listaDestinos.length === 0) {
+        const listaCorreos = Array.from(emailsSet);
+        if (listaCorreos.length === 0) {
             console.log('[Email] No se encontraron destinatarios ni suscriptores registrados.');
             return;
         }
 
-        const mailOptions = {
-            from: `"Aegis Campus" <${userEmisor}>`,
-            to: userEmisor,
-            bcc: listaDestinos,
-            subject: asunto,
-            text: cuerpoTexto,
-            html: cuerpoHtml
-        };
+        let enviadoPorBridge = false;
 
-        const info = await mailTransporter.sendMail(mailOptions);
-        console.log(`[Email] Notificación enviada con éxito (${listaDestinos.length} destinatarios). ID: ${info.messageId}`);
+        // Envío prioritario vía Puente HTTPS (Google Apps Script)
+        if (GOOGLE_SCRIPT_URL) {
+            try {
+                console.log(`[Email HTTPS] Despachando aviso vía puente Google Apps Script a ${listaCorreos.length} destinatario(s)...`);
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    redirect: 'follow',
+                    body: JSON.stringify({
+                        bcc: listaCorreos.join(','),
+                        subject: asunto,
+                        text: cuerpo
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json().catch(() => null);
+                    console.log('[Email HTTPS] Despacho completado:', result);
+
+                    if (result && result.ok) {
+                        enviadoPorBridge = true;
+                    } else {
+                        console.warn('[Email HTTPS] El puente respondió sin confirmación exitosa. Recurriendo a respaldo Nodemailer...');
+                    }
+                } else {
+                    console.warn(`[Email HTTPS] El puente respondió con status HTTP ${response.status}. Recurriendo a respaldo Nodemailer...`);
+                }
+            } catch (bridgeErr) {
+                console.error('[Email HTTPS] Error en puente Google Apps Script:', bridgeErr.message);
+                console.log('[Email HTTPS] Recurriendo a respaldo Nodemailer...');
+            }
+        }
+
+        // Respaldo mediante Nodemailer en caso de que el puente HTTPS no haya confirmado el despacho
+        if (!enviadoPorBridge) {
+            const userEmisor = process.env.SMTP_USER || process.env.EMAIL_USER;
+            const passEmisor = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
+            if (!userEmisor || !passEmisor) {
+                console.log(`[Email] Despacho simulado (sin credenciales SMTP configuradas):\n${asunto}\n${cuerpo}`);
+                return;
+            }
+
+            try {
+                const mailOptions = {
+                    from: `"Aegis Campus" <${userEmisor}>`,
+                    to: userEmisor,
+                    bcc: listaCorreos,
+                    subject: asunto,
+                    text: cuerpo
+                };
+
+                const info = await mailTransporter.sendMail(mailOptions);
+                console.log(`[Email Respaldo] Notificación enviada con éxito (${listaCorreos.length} destinatarios). ID: ${info.messageId}`);
+            } catch (smtpErr) {
+                console.error('[Email Respaldo] Error en despacho Nodemailer:', smtpErr.message);
+            }
+        }
     } catch (err) {
-        console.error('[Email] Error en despacho de correo:', err.message);
+        console.error('[Email] Error general en notificación de incidente:', err.message);
     }
 }
 
