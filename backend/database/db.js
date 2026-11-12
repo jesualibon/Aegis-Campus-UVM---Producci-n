@@ -65,6 +65,12 @@ async function initDB() {
             );
         `);
 
+        // Migración dinámica: agregar columnas para alertas y correo en incidentes
+        await client.query(`
+            ALTER TABLE incidentes ADD COLUMN IF NOT EXISTS recibe_alertas BOOLEAN DEFAULT FALSE;
+            ALTER TABLE incidentes ADD COLUMN IF NOT EXISTS correo VARCHAR(255);
+        `);
+
         // 3. Seed automático para expedientes_soap si la tabla está vacía
         const countRes = await client.query('SELECT COUNT(*) AS count FROM expedientes_soap;');
         const total = parseInt(countRes.rows[0].count, 10);

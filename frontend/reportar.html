@@ -36,10 +36,16 @@
         <!-- Tarjeta Principal de Ancho Controlado -->
         <main class="w-full max-w-[500px] bg-white rounded-lg p-6 sm:p-8 shadow-sm border border-gray-200">
             
-            <!-- Cabecera Integrada: Escudo + Aegis Campus • UVM Mérida -->
-            <div class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                <span class="material-symbols-outlined text-[18px] text-[#C8102E] select-none">shield_person</span>
-                <span>Aegis Campus • UVM Mérida</span>
+            <!-- Cabecera Integrada: Escudo + Aegis Campus • UVM Mérida + Botón Alertas por correo -->
+            <div class="flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <div class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px] text-[#C8102E] select-none">shield_person</span>
+                    <span>Aegis Campus • UVM Mérida</span>
+                </div>
+                <button type="button" id="btn-abrir-modal-suscripcion" class="inline-flex items-center gap-1 normal-case font-medium text-slate-600 hover:text-[#C8102E] transition-colors py-1 px-2 rounded hover:bg-slate-50 cursor-pointer text-xs" title="Recibir avisos por correo sobre incidentes">
+                    <span class="material-symbols-outlined text-[16px] text-[#C8102E]">notifications</span>
+                    <span>Alertas por correo</span>
+                </button>
             </div>
             <h1 class="text-2xl font-bold text-[#1F1F1F] mt-3 tracking-tight">Reportar una emergencia</h1>
             <p class="text-sm text-gray-600 mt-1 mb-6">Envía una alerta directa al centro de monitoreo del campus.</p>
@@ -113,19 +119,19 @@
                     </div>
                 </div>
 
-                <!-- Campo 4: Detalles adicionales (Opcional) -->
+                <!-- Campo 4: Detalles adicionales -->
                 <div>
                     <label for="descripcion" class="text-xs font-semibold text-[#1F1F1F] mb-1.5 block">
-                        Detalles adicionales <span class="text-gray-400 font-normal">(Opcional)</span>
+                        Detalles adicionales <span class="text-gray-400 font-normal">Opcional</span>
                     </label>
                     <textarea id="descripcion" rows="3" maxlength="300" placeholder="Describa síntomas, personas afectadas o referencias visuales..." 
                         class="w-full bg-white border border-gray-300 rounded-sm p-3 text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] transition-all resize-none"></textarea>
                 </div>
 
-                <!-- Campo 5: Teléfono de contacto (Opcional) -->
+                <!-- Campo 5: Teléfono de contacto -->
                 <div>
                     <label for="telefono" class="text-xs font-semibold text-[#1F1F1F] mb-1.5 block">
-                        Teléfono de contacto <span class="text-gray-400 font-normal">(Opcional)</span>
+                        Teléfono de contacto <span class="text-gray-400 font-normal">Opcional</span>
                     </label>
                     <input type="tel" id="telefono" name="telefono" placeholder="Ej. 999 123 4567" maxlength="30" 
                         class="w-full bg-white border border-gray-300 rounded-sm px-3.5 h-10 text-sm text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] transition-all">
@@ -206,7 +212,7 @@
             <!-- Cabecera del Modal -->
             <div class="pr-8 mb-4">
                 <h3 class="text-base sm:text-lg font-bold text-slate-900">Aegis Campus para Android</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Versión oficial UVM Mérida • 16.6 MB</p>
+                <p class="text-xs text-slate-500 mt-0.5">Versión oficial UVM Mérida • 16.7 MB</p>
             </div>
 
             <!-- Bloque de Código QR (Solo visible en pantallas medianas/grandes) -->
@@ -267,6 +273,33 @@
                     <span>Descargar APK ahora</span>
                 </a>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Compacto de Suscripción (#modal-suscripcion-correo) -->
+    <div id="modal-suscripcion-correo" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px] p-4">
+        <div class="bg-white rounded-xl max-w-sm w-full p-5 border border-slate-200 shadow-xl relative">
+            <!-- Botón Cerrar (X) -->
+            <button type="button" id="btn-cerrar-modal-suscripcion" class="absolute top-3.5 right-3.5 p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Cerrar">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+
+            <div class="flex items-center gap-2 mb-2 pr-6">
+                <span class="material-symbols-outlined text-[20px] text-[#C8102E]">notifications_active</span>
+                <h3 class="text-sm font-bold text-slate-900">Avisos por correo</h3>
+            </div>
+            <p class="text-xs text-slate-500 mb-3.5 leading-relaxed">
+                Recibe notificaciones inmediatas al registrarse incidentes en el campus.
+            </p>
+
+            <form id="form-modal-suscripcion" class="flex flex-col sm:flex-row gap-2">
+                <input type="email" id="input-suscripcion-email" required placeholder="ejemplo@uvmnet.edu"
+                    class="flex-1 bg-white border border-gray-300 rounded-sm px-3 h-10 text-xs text-[#1F1F1F] placeholder-gray-400 focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] transition-all" />
+                <button type="submit" id="btn-activar-avisos"
+                    class="h-10 px-4 bg-[#C8102E] hover:bg-[#a50d26] text-white rounded-sm font-bold text-xs uppercase tracking-wide transition-colors shrink-0 cursor-pointer disabled:opacity-50">
+                    Activar avisos
+                </button>
+            </form>
         </div>
     </div>
 

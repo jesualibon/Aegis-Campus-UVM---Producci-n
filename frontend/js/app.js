@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (confId) confId.textContent = data.incidente.id;
                     if (confZona) confZona.textContent = data.incidente.zona_id;
-                    if (confTipo) confTipo.textContent = `${data.incidente.tipo_emergencia} (${data.incidente.severidad})`;
+                    if (confTipo) confTipo.textContent = `${data.incidente.tipo_emergencia} • ${data.incidente.severidad}`;
                     if (confTel) confTel.textContent = data.incidente.telefono || 'Anónimo';
                     if (confSoap && data.incidente.expediente_soap) {
                         confSoap.textContent = data.incidente.expediente_soap.afiliacion || data.incidente.expediente_soap.titular || 'Visitante / Comunidad UVM';
@@ -407,6 +407,76 @@ document.addEventListener('DOMContentLoaded', () => {
                 cerrarModalApk();
             }
         });
+    }
+
+    // Control del Modal Compacto de Suscripción a Avisos (#modal-suscripcion-correo)
+    const btnAbrirModalSuscripcion = document.getElementById('btn-abrir-modal-suscripcion');
+    const modalSuscripcionCorreo = document.getElementById('modal-suscripcion-correo');
+    const btnCerrarModalSuscripcion = document.getElementById('btn-cerrar-modal-suscripcion');
+    const formModalSuscripcion = document.getElementById('form-modal-suscripcion');
+    const inputSuscripcionEmail = document.getElementById('input-suscripcion-email');
+    const btnActivarAvisos = document.getElementById('btn-activar-avisos');
+
+    if (modalSuscripcionCorreo) {
+        const abrirModalSuscripcion = () => {
+            modalSuscripcionCorreo.classList.remove('hidden');
+            modalSuscripcionCorreo.classList.add('flex');
+            if (inputSuscripcionEmail) {
+                setTimeout(() => inputSuscripcionEmail.focus(), 100);
+            }
+        };
+
+        const cerrarModalSuscripcion = () => {
+            modalSuscripcionCorreo.classList.add('hidden');
+            modalSuscripcionCorreo.classList.remove('flex');
+        };
+
+        if (btnAbrirModalSuscripcion) {
+            btnAbrirModalSuscripcion.addEventListener('click', abrirModalSuscripcion);
+        }
+
+        if (btnCerrarModalSuscripcion) {
+            btnCerrarModalSuscripcion.addEventListener('click', cerrarModalSuscripcion);
+        }
+
+        modalSuscripcionCorreo.addEventListener('click', (e) => {
+            if (e.target === modalSuscripcionCorreo) {
+                cerrarModalSuscripcion();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modalSuscripcionCorreo.classList.contains('hidden')) {
+                cerrarModalSuscripcion();
+            }
+        });
+
+        if (formModalSuscripcion) {
+            formModalSuscripcion.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = inputSuscripcionEmail ? inputSuscripcionEmail.value.trim() : '';
+                if (!email) return;
+
+                if (btnActivarAvisos) btnActivarAvisos.disabled = true;
+
+                try {
+                    const res = await fetch('/api/v1/suscriptores', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Error al procesar la suscripción.');
+                    Toast.show(data.mensaje || 'Suscripción activada con éxito.', 'success');
+                    if (inputSuscripcionEmail) inputSuscripcionEmail.value = '';
+                    cerrarModalSuscripcion();
+                } catch (err) {
+                    Toast.show(err.message, 'error');
+                } finally {
+                    if (btnActivarAvisos) btnActivarAvisos.disabled = false;
+                }
+            });
+        }
     }
 
     // =====================================================================

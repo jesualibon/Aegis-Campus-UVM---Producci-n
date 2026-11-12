@@ -81,45 +81,88 @@ const transporter = nodemailer.createTransport({
 const mailTransporter = transporter;
 
 /**
- * Notificación asíncrona de incidentes críticos (ALTA y MEDIA) por correo electrónico.
+ * Notificación asíncrona de incidentes por correo electrónico a suscriptores y red comunitaria.
  */
 async function enviarNotificacionIncidente(incidente) {
-    const destinos = process.env.EMAIL_DESTINOS;
-    if (!destinos || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn('[Email] Credenciales SMTP o EMAIL_DESTINOS no configurados. Omitiendo notificación por correo.');
+    if (!incidente) return;
+
+    const zonaLimpia = (incidente.zona_id || '').replace(/\s*\([^)]*\)/g, '').trim();
+    const folio = incidente.id || 'S/N';
+    const tipo = incidente.tipo_emergencia || 'General';
+    const prioridad = incidente.severidad || 'MEDIA';
+
+    const asunto = `Aviso de incidente en UVM Mérida • Folio ${folio}`;
+    const cuerpoTexto = [
+        'Nuevo incidente registrado en el campus UVM Mérida.',
+        '',
+        `Folio: ${folio}`,
+        `Ubicación: ${zonaLimpia}`,
+        `Tipo: ${tipo}`,
+        `Prioridad: ${prioridad}`,
+        '',
+        'El centro de monitoreo ya atiende el reporte.'
+    ].join('\n');
+
+    const cuerpoHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #202124; max-width: 560px; margin: 0 auto; padding: 20px; border: 1px solid #dadce0; border-radius: 8px;">
+            <p style="margin-top: 0; font-size: 15px; font-weight: bold; color: #C8102E;">Nuevo incidente registrado en el campus UVM Mérida.</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
+                <tr><td style="padding: 6px 0; color: #5f6368; width: 110px;"><strong>Folio:</strong></td><td>${folio}</td></tr>
+                <tr><td style="padding: 6px 0; color: #5f6368;"><strong>Ubicación:</strong></td><td><strong>${zonaLimpia}</strong></td></tr>
+                <tr><td style="padding: 6px 0; color: #5f6368;"><strong>Tipo:</strong></td><td>${tipo}</td></tr>
+                <tr><td style="padding: 6px 0; color: #5f6368;"><strong>Prioridad:</strong></td><td>${prioridad}</td></tr>
+            </table>
+            <p style="margin-bottom: 0; color: #3c4043; font-size: 14px;">El centro de monitoreo ya atiende el reporte.</p>
+        </div>
+    `;
+
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.log(`[Email] Despacho simulado (sin credenciales SMTP configuradas):\n${asunto}\n${cuerpoTexto}`);
         return;
     }
 
-    const mailOptions = {
-        from: `"Aegis Campus - SafeZone" <${process.env.SMTP_USER}>`,
-        to: destinos,
-        subject: `⚠️ ALERTA [${incidente.severidad}]: Emergencia ${incidente.tipo_emergencia} en ${incidente.zona_id}`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #dadce0; border-radius: 8px; overflow: hidden;">
-                <div style="background-color: ${incidente.severidad === 'ALTA' ? '#c5221f' : '#e37400'}; color: white; padding: 16px; text-align: center;">
-                    <h2 style="margin: 0; font-size: 20px;">Aegis Campus — Alerta de Emergencia</h2>
-                    <p style="margin: 4px 0 0; font-size: 14px;">Nivel de Severidad: <strong>${incidente.severidad}</strong></p>
-                </div>
-                <div style="padding: 20px; background-color: #ffffff; color: #202124;">
-                    <p style="font-size: 14px; margin-top: 0;">Se ha reportado una emergencia en las instalaciones universitarias:</p>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                        <tr><td style="padding: 8px 0; color: #5f6368; width: 140px;"><strong>Folio:</strong></td><td>${incidente.id}</td></tr>
-                        <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Tipo Incidente:</strong></td><td>${incidente.tipo_emergencia}</td></tr>
-                        <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Zona / Edificio:</strong></td><td><strong>${incidente.zona_id}</strong></td></tr>
-                        <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Teléfono Contacto:</strong></td><td>${incidente.telefono || 'Anónimo'}</td></tr>
-                        <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Descripción:</strong></td><td>${incidente.descripcion || 'Sin descripción adicional'}</td></tr>
-                        <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Fecha y Hora:</strong></td><td>${new Date(incidente.timestamp).toLocaleString('es-MX')}</td></tr>
-                    </table>
-                </div>
-                <div style="background-color: #f8f9fa; padding: 12px; text-align: center; font-size: 12px; color: #5f6368; border-top: 1px solid #dadce0;">
-                    Aviso automático generado por el Centro de Mando Aegis Campus SafeZone.
-                </div>
-            </div>
-        `
-    };
+    try {
+        const emailsSet = new Set();
 
-    const info = await mailTransporter.sendMail(mailOptions);
-    console.log(`[Email] Notificación enviada exitosamente a [${destinos}]. ID: ${info.messageId}`);
+        // 1. Destinos desde variable de entorno si existe
+        if (process.env.EMAIL_DESTINOS) {
+            process.env.EMAIL_DESTINOS
+                .split(',')
+                .map(e => e.trim().toLowerCase())
+                .filter(Boolean)
+                .forEach(e => emailsSet.add(e));
+        }
+
+        // 2. Destinos desde la tabla suscriptores
+        try {
+            const { rows } = await pool.query('SELECT email FROM suscriptores;');
+            rows.forEach(r => {
+                if (r.email) emailsSet.add(r.email.trim().toLowerCase());
+            });
+        } catch (dbErr) {
+            console.warn('[Email] Error al consultar suscriptores de la base de datos:', dbErr.message);
+        }
+
+        const listaDestinos = Array.from(emailsSet);
+        if (listaDestinos.length === 0) {
+            console.log('[Email] No se encontraron destinatarios ni suscriptores registrados.');
+            return;
+        }
+
+        const mailOptions = {
+            from: `"Aegis Campus" <${process.env.SMTP_USER}>`,
+            to: process.env.SMTP_USER,
+            bcc: listaDestinos,
+            subject: asunto,
+            text: cuerpoTexto,
+            html: cuerpoHtml
+        };
+
+        const info = await mailTransporter.sendMail(mailOptions);
+        console.log(`[Email] Notificación enviada con éxito (${listaDestinos.length} destinatarios). ID: ${info.messageId}`);
+    } catch (err) {
+        console.error('[Email] Error en despacho de correo:', err.message);
+    }
 }
 
 /**
@@ -539,6 +582,10 @@ app.post('/api/v1/incidentes', reportLimiter, async (req, res) => {
         let {
             nombre_reportante,
             telefono,
+            correo,
+            email,
+            recibe_alertas,
+            recibeAlertas,
             tipo_emergencia,
             severidad,
             prioridad,
@@ -547,7 +594,7 @@ app.post('/api/v1/incidentes', reportLimiter, async (req, res) => {
             coordenadas,
             descripcion,
             detalles
-        } = req.body;
+        } = req.body || {};
 
         zona_id = zona_id || zona;
         severidad = severidad || prioridad || "MEDIA";
@@ -562,6 +609,29 @@ app.post('/api/v1/incidentes', reportLimiter, async (req, res) => {
         telefono = sanitizeString(telefono, 30);
         if (!telefono) {
             telefono = "Anónimo";
+        }
+
+        // Sanitización de correo electrónico y preferencia de alertas
+        let correoSanitizado = sanitizeString(correo || email || '', 255).toLowerCase();
+        if (!correoSanitizado || !correoSanitizado.includes('@')) {
+            correoSanitizado = null;
+        }
+
+        const aceptaAlertas = Boolean(
+            recibe_alertas === true || recibe_alertas === 'true' || recibe_alertas === 1 ||
+            recibeAlertas === true || recibeAlertas === 'true' || recibeAlertas === 1
+        );
+
+        // Si el usuario aceptó recibir alertas y proporcionó correo válido, suscribirlo
+        if (aceptaAlertas && correoSanitizado) {
+            try {
+                await pool.query(
+                    'INSERT INTO suscriptores (email) VALUES ($1) ON CONFLICT (email) DO NOTHING;',
+                    [correoSanitizado]
+                );
+            } catch (subErr) {
+                console.warn('[Suscriptores] Error al registrar suscriptor en BD:', subErr.message);
+            }
         }
 
         tipo_emergencia = sanitizeString(tipo_emergencia, 50);
@@ -596,12 +666,13 @@ app.post('/api/v1/incidentes', reportLimiter, async (req, res) => {
         const estado = "REPORTADO";
         const descFinal = descripcion || "Sin descripción proporcionada.";
 
-        // Inserción en la tabla incidentes mediante consulta parametrizada
+        // Inserción en la tabla incidentes incluyendo correo y recibe_alertas
         const insertQuery = `
             INSERT INTO incidentes (
                 id, telefono, tipo_emergencia, severidad, zona_id, 
-                lat, lng, descripcion, estado, timestamp, expediente_json
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                lat, lng, descripcion, estado, timestamp, expediente_json,
+                recibe_alertas, correo
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             RETURNING *;
         `;
         const insertValues = [
@@ -615,7 +686,9 @@ app.post('/api/v1/incidentes', reportLimiter, async (req, res) => {
             descFinal,
             estado,
             timestamp,
-            JSON.stringify(expedienteSoap)
+            JSON.stringify(expedienteSoap),
+            aceptaAlertas,
+            correoSanitizado
         ];
 
         const { rows: insertedRows } = await pool.query(insertQuery, insertValues);
@@ -626,6 +699,8 @@ app.post('/api/v1/incidentes', reportLimiter, async (req, res) => {
             id: nuevoIncidenteDB.id,
             nombre_reportante,
             telefono: nuevoIncidenteDB.telefono,
+            correo: nuevoIncidenteDB.correo,
+            recibe_alertas: nuevoIncidenteDB.recibe_alertas,
             tipo_emergencia: nuevoIncidenteDB.tipo_emergencia,
             severidad: nuevoIncidenteDB.severidad,
             zona_id: nuevoIncidenteDB.zona_id,
@@ -639,62 +714,15 @@ app.post('/api/v1/incidentes', reportLimiter, async (req, res) => {
             expediente_soap: nuevoIncidenteDB.expediente_json
         };
 
-        // Emitir alerta en tiempo real al Centro de Mando Web solo cuando se guardó con éxito en BD
+        // Emitir alerta en tiempo real al Centro de Mando Web
         io.emit('nueva_alerta', nuevoIncidente);
 
-        // Paso 2: Notificación comunitaria asíncrona a suscriptores vía BCC
-        const severidadNormalizada = (severidad || nuevoIncidente.severidad || '').toString().toUpperCase().trim();
-        if (severidadNormalizada === 'ALTA' || severidadNormalizada === 'MEDIA') {
-            if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-                // Obtener lista de suscriptores comunitarios desde Neon DB
-                pool.query('SELECT email FROM suscriptores;')
-                    .then(({ rows }) => {
-                        const listaEmails = rows.map(r => r.email).filter(Boolean);
-                        if (listaEmails.length === 0) {
-                            console.warn('[Email] No hay suscriptores comunitarios registrados. Omitiendo despacho.');
-                            return;
-                        }
-
-                        const mailOptions = {
-                            from: `"Aegis Campus - SafeZone" <${process.env.SMTP_USER}>`,
-                            to: `"Red de Seguridad Comunitaria" <${process.env.SMTP_USER}>`,
-                            bcc: listaEmails, // En bcc para proteger privacidad comunitaria
-                            subject: `⚠️ ALERTA [${nuevoIncidente.severidad}]: Emergencia ${nuevoIncidente.tipo_emergencia} en ${nuevoIncidente.zona_id}`,
-                            html: `
-                                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #dadce0; border-radius: 8px; overflow: hidden;">
-                                    <div style="background-color: ${nuevoIncidente.severidad === 'ALTA' ? '#c5221f' : '#e37400'}; color: white; padding: 16px; text-align: center;">
-                                        <h2 style="margin: 0; font-size: 20px;">Aegis Campus — Alerta Comunitaria</h2>
-                                        <p style="margin: 4px 0 0; font-size: 14px;">Nivel de Severidad: <strong>${nuevoIncidente.severidad}</strong></p>
-                                    </div>
-                                    <div style="padding: 20px; background-color: #ffffff; color: #202124;">
-                                        <p style="font-size: 14px; margin-top: 0;">Se ha reportado una emergencia comunitaria en las instalaciones universitarias:</p>
-                                        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                                            <tr><td style="padding: 8px 0; color: #5f6368; width: 140px;"><strong>Folio:</strong></td><td>${nuevoIncidente.id}</td></tr>
-                                            <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Tipo Incidente:</strong></td><td>${nuevoIncidente.tipo_emergencia}</td></tr>
-                                            <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Zona / Edificio:</strong></td><td><strong>${nuevoIncidente.zona_id}</strong></td></tr>
-                                            <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Teléfono Contacto:</strong></td><td>${nuevoIncidente.telefono || 'Anónimo'}</td></tr>
-                                            <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Descripción:</strong></td><td>${nuevoIncidente.descripcion || 'Sin descripción adicional'}</td></tr>
-                                            <tr><td style="padding: 8px 0; color: #5f6368;"><strong>Fecha y Hora:</strong></td><td>${new Date(nuevoIncidente.timestamp).toLocaleString('es-MX')}</td></tr>
-                                        </table>
-                                    </div>
-                                    <div style="background-color: #f8f9fa; padding: 12px; text-align: center; font-size: 12px; color: #5f6368; border-top: 1px solid #dadce0;">
-                                        Recibes este aviso por estar suscrito a la Red de Ayuda Comunitaria de Aegis Campus.
-                                    </div>
-                                </div>
-                            `
-                        };
-
-                        transporter.sendMail(mailOptions)
-                            .then(info => console.log('✅ Correo enviado con éxito a suscriptores:', info.response))
-                            .catch(error => console.error('❌ Error crítico de Nodemailer:', error));
-                    })
-                    .catch(errDb => {
-                        console.error('[Email] Error consultando tabla suscriptores:', errDb.message);
-                    });
-            } else {
-                console.warn('[Email] Credenciales SMTP no configuradas. Omitiendo notificación por correo.');
-            }
-        }
+        // Despacho en segundo plano asíncrono (sin bloquear la respuesta HTTP 201)
+        setImmediate(() => {
+            enviarNotificacionIncidente(nuevoIncidente).catch(err => {
+                console.error('[Email] Error en despacho asíncrono de notificación:', err);
+            });
+        });
 
         return res.status(201).json({
             mensaje: "Emergencia registrada y transmitida al Centro de Mando con éxito.",
@@ -787,32 +815,34 @@ app.patch('/api/v1/incidentes/:id', verificarToken, async (req, res) => {
     }
 });
 
-// Endpoint de Suscripción Comunitaria (Ruta 100% PÚBLICA)
-app.post('/api/v1/comunidad/suscribir', async (req, res) => {
+// Endpoint Directo para Suscripción de Alertas por Correo (Ruta 100% PÚBLICA)
+app.post(['/api/v1/suscriptores', '/api/v1/comunidad/suscribir'], async (req, res) => {
     try {
-        let { email } = req.body || {};
-        if (!email || typeof email !== 'string' || !email.includes('@')) {
-            return res.status(400).json({ error: "Por favor proporciona un correo electrónico válido." });
+        let { email, correo } = req.body || {};
+        let targetEmail = (email || correo || '').toString().trim();
+
+        if (!targetEmail || !targetEmail.includes('@')) {
+            return res.status(400).json({ ok: false, error: "Por favor proporciona un correo electrónico válido." });
         }
 
-        email = sanitizeString(email, 255).toLowerCase().trim();
+        targetEmail = sanitizeString(targetEmail, 255).toLowerCase().trim();
 
         const insertQuery = `
             INSERT INTO suscriptores (email)
             VALUES ($1)
             ON CONFLICT (email) DO NOTHING
-            RETURNING *;
+            RETURNING id, email;
         `;
-        const { rows } = await pool.query(insertQuery, [email]);
+        await pool.query(insertQuery, [targetEmail]);
 
-        return res.status(201).json({
-            mensaje: rows.length > 0 
-                ? "¡Te has suscrito exitosamente a la Red de Ayuda Comunitaria!"
-                : "Tu correo ya se encuentra registrado en la Red de Ayuda Comunitaria."
+        return res.status(200).json({
+            ok: true,
+            mensaje: "Suscripción activada con éxito.",
+            email: targetEmail
         });
     } catch (err) {
         console.error('[Database] Error al registrar suscriptor:', err);
-        return res.status(500).json({ error: "Error interno al procesar la suscripción comunitaria." });
+        return res.status(500).json({ ok: false, error: "Error interno al procesar la suscripción." });
     }
 });
 
