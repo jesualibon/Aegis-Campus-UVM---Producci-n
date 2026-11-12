@@ -185,9 +185,88 @@
             </div>
         </main>
 
-        <!-- Pie Externo Institucional (Sin enlaces a operadores) -->
-        <div class="w-full max-w-[500px] mt-4 px-1 text-center text-xs text-gray-500 font-medium">
-            <span>Universidad del Valle de México • Campus Mérida</span>
+        <!-- Pie Externo Institucional -->
+        <div class="w-full max-w-[500px] mt-4 px-1 flex flex-col items-center justify-center gap-2.5 text-xs text-gray-500 font-medium">
+            <button type="button" id="btn-abrir-modal-apk" class="inline-flex items-center gap-1.5 text-slate-700 hover:text-[#C8102E] transition-colors py-1.5 px-3 rounded-md bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 shadow-2xs cursor-pointer">
+                <span class="material-symbols-outlined text-[18px] text-slate-500">android</span>
+                <span>Descargar para Android</span>
+            </button>
+            <span class="text-[11px] text-gray-400">Universidad del Valle de México • Campus Mérida</span>
+        </div>
+    </div>
+
+    <!-- Modal de Instalación Asistida (#modal-descarga-apk) -->
+    <div id="modal-descarga-apk" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px] p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 border border-slate-200 shadow-xl relative max-h-[90vh] overflow-y-auto">
+            <!-- Botón Cerrar (X) -->
+            <button type="button" id="btn-cerrar-modal-apk" class="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Cerrar">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+
+            <!-- Cabecera del Modal -->
+            <div class="pr-8 mb-4">
+                <h3 class="text-base sm:text-lg font-bold text-slate-900">Aegis Campus para Android</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Versión oficial UVM Mérida • 16.6 MB</p>
+            </div>
+
+            <!-- Bloque de Código QR (Solo visible en pantallas medianas/grandes) -->
+            <div class="hidden sm:flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-center">
+                <img src="data:image/png;base64,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" alt="QR Descarga APK" class="w-32 h-32 rounded-lg border border-slate-200 p-1.5 bg-white shadow-2xs mb-2" />
+                <p class="text-xs text-slate-600 font-medium">Escanea con la cámara de tu Android para descargar directo en tu teléfono</p>
+            </div>
+
+            <!-- Guía Paso a Paso de Instalación -->
+            <div class="space-y-3 mb-4 text-left">
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-[#C8102E]/10 text-[#C8102E] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        1
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800">Descarga segura</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Toca el botón inferior y confirma <strong>"Descargar de todos modos"</strong>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-[#C8102E]/10 text-[#C8102E] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        2
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800">Permiso de navegador</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Abre el archivo descargado y activa <strong>"Permitir desde esta fuente"</strong>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-[#C8102E]/10 text-[#C8102E] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        3
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800">Play Protect</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Si aparece Play Protect, selecciona <strong>"Más detalles"</strong> e <strong>"Instalar de todas formas"</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nota para usuarios de iPhone (iOS) -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-lg p-2.5 text-xs text-slate-600 mb-5 flex items-start gap-2">
+                <span class="material-symbols-outlined text-[16px] text-slate-500 shrink-0 mt-0.5">phone_iphone</span>
+                <span>¿Usas iPhone? En Safari toca <em>Compartir</em> → <em>Agregar a pantalla de inicio</em>.</span>
+            </div>
+
+            <!-- Botón Principal de Descarga Directa (CTA) -->
+            <div>
+                <a href="/descargas/aegis-campus.apk" download="Aegis-Campus-UVM.apk" class="w-full h-11 bg-[#C8102E] hover:bg-[#a50d26] text-white font-medium text-sm rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">download</span>
+                    <span>Descargar APK ahora</span>
+                </a>
+            </div>
         </div>
     </div>
 

@@ -374,6 +374,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Control del Modal de Instalación Asistida de App Android (#modal-descarga-apk)
+    const btnAbrirModalApk = document.getElementById('btn-abrir-modal-apk');
+    const modalDescargaApk = document.getElementById('modal-descarga-apk');
+    const btnCerrarModalApk = document.getElementById('btn-cerrar-modal-apk');
+
+    if (modalDescargaApk) {
+        if (btnAbrirModalApk) {
+            btnAbrirModalApk.addEventListener('click', () => {
+                modalDescargaApk.classList.remove('hidden');
+                modalDescargaApk.classList.add('flex');
+            });
+        }
+
+        const cerrarModalApk = () => {
+            modalDescargaApk.classList.add('hidden');
+            modalDescargaApk.classList.remove('flex');
+        };
+
+        if (btnCerrarModalApk) {
+            btnCerrarModalApk.addEventListener('click', cerrarModalApk);
+        }
+
+        modalDescargaApk.addEventListener('click', (e) => {
+            if (e.target === modalDescargaApk) {
+                cerrarModalApk();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modalDescargaApk.classList.contains('hidden')) {
+                cerrarModalApk();
+            }
+        });
+    }
+
     // =====================================================================
     // 2. AISLAMIENTO DEL MÓDULO DE CENTRO DE MANDO (DASHBOARD.HTML)
     // =====================================================================

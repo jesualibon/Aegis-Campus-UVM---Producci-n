@@ -402,8 +402,29 @@ app.patch(['/api/v1/admin/operadores/:id', '/api/v1/admin/operadores/:id/desacti
     }
 });
 
+// Ruta dedicada y segura para descarga directa del APK de Android con MIME oficial
+app.get('/descargas/aegis-campus.apk', (req, res) => {
+    const apkPath = path.resolve(__dirname, '../frontend/descargas/aegis-campus.apk');
+    res.download(apkPath, 'Aegis-Campus-UVM.apk', {
+        headers: {
+            'Content-Type': 'application/vnd.android.package-archive'
+        }
+    }, (err) => {
+        if (err && !res.headersSent) {
+            res.status(404).json({ error: "Paquete de instalación APK no encontrado." });
+        }
+    });
+});
+
 // Servicio de archivos estáticos (JS, CSS, imágenes) deshabilitando index automático para priorizar las rutas
-app.use(express.static(path.join(__dirname, '../frontend'), { index: false }));
+app.use(express.static(path.join(__dirname, '../frontend'), {
+    index: false,
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.apk')) {
+            res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+        }
+    }
+}));
 
 // Configurar trust proxy para proxies en la nube (ej. Render, Heroku, Nginx)
 app.set('trust proxy', 1);
@@ -520,10 +541,17 @@ app.post('/api/v1/incidentes', reportLimiter, async (req, res) => {
             telefono,
             tipo_emergencia,
             severidad,
+            prioridad,
             zona_id,
+            zona,
             coordenadas,
-            descripcion
+            descripcion,
+            detalles
         } = req.body;
+
+        zona_id = zona_id || zona;
+        severidad = severidad || prioridad || "MEDIA";
+        descripcion = descripcion || detalles || "";
 
         // Sanitización y valores por defecto para campos de identidad opcionales
         nombre_reportante = sanitizeString(nombre_reportante, 100);
