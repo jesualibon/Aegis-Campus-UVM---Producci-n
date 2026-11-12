@@ -626,7 +626,10 @@ app.post('/api/v1/incidentes', reportLimiter, async (req, res) => {
         if (aceptaAlertas && correoSanitizado) {
             try {
                 await pool.query(
-                    'INSERT INTO suscriptores (email) VALUES ($1) ON CONFLICT (email) DO NOTHING;',
+                    `INSERT INTO suscriptores (email)
+                     SELECT $1::varchar
+                     WHERE NOT EXISTS (SELECT 1 FROM suscriptores WHERE email = $1::varchar)
+                     ON CONFLICT (email) DO NOTHING;`,
                     [correoSanitizado]
                 );
             } catch (subErr) {
@@ -818,27 +821,27 @@ app.patch('/api/v1/incidentes/:id', verificarToken, async (req, res) => {
 // Endpoint Directo para Suscripción de Alertas por Correo (Ruta 100% PÚBLICA)
 app.post(['/api/v1/suscriptores', '/api/v1/comunidad/suscribir'], async (req, res) => {
     try {
-        let { email, correo } = req.body || {};
-        let targetEmail = (email || correo || '').toString().trim();
+        const rawEmail = req.body ? (req.body.email || req.body.correo || '') : '';
+        const email = rawEmail.toString().trim().toLowerCase();
 
-        if (!targetEmail || !targetEmail.includes('@')) {
+        if (!email || !email.includes('@')) {
             return res.status(400).json({ ok: false, error: "Por favor proporciona un correo electrónico válido." });
         }
 
-        targetEmail = sanitizeString(targetEmail, 255).toLowerCase().trim();
+        const emailLimpio = sanitizeString(email, 255);
 
         const insertQuery = `
             INSERT INTO suscriptores (email)
-            VALUES ($1)
-            ON CONFLICT (email) DO NOTHING
-            RETURNING id, email;
+            SELECT $1::varchar
+            WHERE NOT EXISTS (SELECT 1 FROM suscriptores WHERE email = $1::varchar)
+            ON CONFLICT (email) DO NOTHING;
         `;
-        await pool.query(insertQuery, [targetEmail]);
+        await pool.query(insertQuery, [emailLimpio]);
 
         return res.status(200).json({
             ok: true,
             mensaje: "Suscripción activada con éxito.",
-            email: targetEmail
+            email: emailLimpio
         });
     } catch (err) {
         console.error('[Database] Error al registrar suscriptor:', err);

@@ -136,9 +136,10 @@ async function initDB() {
         // 5. Tabla suscriptores para la Red de Ayuda Comunitaria
         await client.query(`
             CREATE TABLE IF NOT EXISTS suscriptores (
-                email VARCHAR PRIMARY KEY,
+                email VARCHAR(255) PRIMARY KEY,
                 fecha_registro TIMESTAMP DEFAULT NOW()
             );
+            ALTER TABLE suscriptores ADD COLUMN IF NOT EXISTS email VARCHAR(255);
         `);
 
         // Seed inicial para suscriptores comunitarios si la tabla está vacía
@@ -150,7 +151,10 @@ async function initDB() {
             const defaultDestinos = process.env.EMAIL_DESTINOS.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
             for (const email of defaultDestinos) {
                 await client.query(
-                    'INSERT INTO suscriptores (email) VALUES ($1) ON CONFLICT (email) DO NOTHING;',
+                    `INSERT INTO suscriptores (email)
+                     SELECT $1::varchar
+                     WHERE NOT EXISTS (SELECT 1 FROM suscriptores WHERE email = $1::varchar)
+                     ON CONFLICT (email) DO NOTHING;`,
                     [email]
                 );
             }
